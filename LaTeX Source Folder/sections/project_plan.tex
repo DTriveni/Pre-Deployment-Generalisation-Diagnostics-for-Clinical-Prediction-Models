@@ -1,0 +1,9 @@
+\section{Project Plan}
+
+\textbf{Week 1 --- Divergence Scoring (Objective 1):} Set up the eICU demo pipeline using YAIB benchmark code. Define four regional contexts. Implement MMD, KL divergence, and Wasserstein distance. Compute all pairwise divergence scores. Correlate each metric with known cross-context performance drops using Spearman correlation. Produce ranked comparison with confidence intervals. Select the best-performing metric for Stage 3.
+
+\textbf{Week 2 --- Feature Stability (Objective 2):} Implement leave-one-context-out permutation importance. Compute importance rankings across all four contexts. Classify each feature as shift-stable, shift-sensitive, or uncertain using the 0.6/0.3 consistency thresholds. Validate classifications against observed cross-context performance. Check whether removing shift-sensitive features disproportionately affects any demographic subgroup.
+
+\textbf{Week 3 --- Decision Framework and Evaluation (Objective 3):} Set divergence thresholds using Week 1 results. Build decision flowchart with four outputs. Test the full pipeline on a held-out context not used in threshold calibration. Compare against all three baselines. Document results, limitations, and failure cases. Prepare final report and all code for submission.
+
+\textbf{Contingency:} If the demo subset proves too small for stable threshold calibration, the project will apply for access to the full eICU database (approximately one additional week for CITI training and data use agreement). If the regional grouping produces insufficient variation in divergence scores, alternative groupings by hospital size or patient acuity will be explored.
