@@ -1,0 +1,43 @@
+\section{Data, Ethics, and Practical Considerations}
+
+\subsection{Data Readiness}
+
+The primary dataset is the eICU Collaborative Research Database Demo~\cite{pollard2018eicu}, a freely available ICU subset hosted on PhysioNet containing 2,520 patients across 186 US hospitals. Variables include demographics, APACHE physiology scores, lab results, diagnoses, and in-hospital mortality. The multi-hospital structure is what makes it suitable, as each hospital or region represents an independent clinical environment with its own patient mix, providing exactly the cross-context variation the framework requires.
+
+The demo subset can be downloaded freely without special access; the full database (73,718 patients) requires CITI training and a signed data use agreement. The PhysioNet license allows research use but not sharing or commercial use. Existing standard processes from the YAIB framework~\cite{yeche2023yaib} handle data handling and basic modeling, allowing the project to focus on the diagnostic framework.
+
+According to the Lawrence Framework scale, the data is at DRL-3, organized but requiring specific preparation steps, such as combining CSV files, filling in missing data, and adjusting age records. After this preparation, it reaches DRL-5. There are three limits: all hospitals are in the US, which limits how well results apply elsewhere; the demo has only 10--40 patients per hospital, so hospitals are grouped into four US regions (Midwest, South, West, Northeast) with 140--807 patients each; and 80\% of the patients are Caucasian, mostly older and male, which limits fairness testing across different groups.
+
+\subsection{Ethical Considerations}
+
+\textbf{Fairness.} The decision limits are set using data mostly from one group 80\% Caucasian, 0\% African American, 5\% Hispanic, 1.2\% Asian. These limits might not work well for groups with different mixes. The smallest region (Northeast, 159 patients) has the highest death rate (11.9\% compared to 7.1\% in the Midwest), showing real differences between areas. A system made to point when models don't work well everywhere might wrongly reassure the groups most likely to be left out.
+
+\textbf{Privacy.} The data has personal details removed, but some demo hospitals have as few as 10 patients. Calculating statistics on small groups carries a small risk that individuals could still be identified, especially if combined with other information. Under UK GDPR, data without names can still count as personal data if people can realistically be identified.
+
+\textbf{Automation bias.} The system gives clear choices: deploy, retrain, restrict, or do not deploy. There is a real risk that people see these as certain decisions rather than estimates, which could lead to risky use of borderline models or to stopping useful ones. Also, a low difference score for a whole group does not mean every single patient in that group is well represented in the training data.
+
+\textbf{Data governance.} The PhysioNet license requires that work stay within agreed-upon rules. In a UK clinical setting, the DUAA 2025 would require that patients have the right to a human review of any automated decision affecting them, and that the reasons be clear and verifiable.
+
+\subsection{Mitigations}
+
+\begin{table}[H]
+\centering
+\caption{Ethical Risks and Mitigations}
+\label{tab:ethics_mitigations}
+\begin{tabular}{p{3cm}p{5cm}}
+\toprule
+\textbf{Risk} & \textbf{Mitigation} \\
+\midrule
+Unfair thresholds
+  & Report all results stratified by demographic subgroup; explicitly state calibration population limitations \\
+Re-identification
+  & No subgroup statistics below $n=10$; divergence computed on aggregate distributions only; no data linkage \\
+Automation bias
+  & Display divergence score and uncertainty range alongside categorical recommendation; require documented human decision before any deployment action \\
+Feature exclusion inequity
+  & Before dropping shift-sensitive features, check whether removal disproportionately harms specific demographic groups; use targeted recalibration if so \\
+Governance breach
+  & Follow all PhysioNet data use terms; if deployed in UK clinical settings, implement DUAA~2025 human-review and auditability requirements \\
+\bottomrule
+\end{tabular}
+\end{table}

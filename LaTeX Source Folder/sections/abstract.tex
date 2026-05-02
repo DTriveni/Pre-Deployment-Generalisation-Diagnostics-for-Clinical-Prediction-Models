@@ -1,25 +1,4 @@
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
-
-% ============================================================
-% Load all packages and formatting from external file
-% ============================================================
-\input{preamble}
-
-\begin{document}
-
-\title{A Pre-Deployment Diagnostic Framework for Generalisation Failure
-in Clinical Prediction Models}
-
-\author{
-\IEEEauthorblockN{Triveni Dhamdhere}
-\IEEEauthorblockA{
-SEMTM0045 -- Data Science Methods and Practice\\
-University of Bristol}
-}
-
-\maketitle
-
+\begin{abstract}
 \begin{abstract}
 Recent studies highlight a common problem in clinical machine learning: models that perform well during development often do not generalize to new patient groups. This problem is seen across areas such as psychiatry, genomics, and biomarker research. For example, Roy H. Perlis, Chekroud, and colleagues found that the accuracy of schizophrenia treatment models dropped from 0.72 during internal testing to 0.54 on separate datasets~\cite{chekroud2024illusory}. This drop in performance is usually linked to issues such as changes in data, misleading connections, hidden factors, and evaluation errors~\cite{whalen2022pitfalls, bendavid2010theory}.
 
@@ -29,22 +8,4 @@ To fill this gap, a practical three-step process for checking risks before deplo
 
 The objective is to deliver a practical, accessible pipeline that clinical machine learning teams can implement using standard tools, without specialized expertise in causal inference or complex modeling assumptions.
 \end{abstract}
-
-\begin{IEEEkeywords}
-dataset shift, generalisation, clinical prediction models, distributional
-divergence, feature stability, deployment diagnostics, machine learning
-\end{IEEEkeywords}
-
-% ─── SECTIONS ────────────────────────────────────────────────────────────────
-\input{sections/introduction}
-\input{sections/literature_review}
-\input{LaTeX Source Folder/sections/research_gap_objectives}
-\input{LaTeX Source Folder/sections/proposed_methodology}
-\input{LaTeX Source Folder/sections/data_ethics}
-\input{LaTeX Source Folder/sections/project_plan}
-\input{LaTeX Source Folder/sections/nontech_summary}
-
-% ─── BIBLIOGRAPHY ────────────────────────────────────────────────────────────
-\bibliography{references}
-
-\end{document}
+\end{abstract}

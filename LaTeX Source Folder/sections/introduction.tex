@@ -1,0 +1,10 @@
+\section{Introduction}
+\footnote{GitHub link: \url{https://github.com/}}
+
+Each year, thousands of machine learning models are developed to predict clinical outcomes, such as cardiovascular risk and treatment response, using electronic health records, genomic data, and imaging~\cite{collins2024tripod, greener2022guide}. The premise is that patterns in patient data will improve decision-making for future cases. This promise has attracted substantial funding, regulatory scrutiny, and clinical interest.
+
+However, most models are evaluated with methods that exaggerate their real-world effectiveness by testing only on data similar to what the model has seen. These approaches do not address how models fare across hospitals, regions, or time periods. Evidence shows substantial performance drops in such settings: for instance, Chekroud et al.~\cite{chekroud2024illusory} reported a decline from 0.72 within trial to 0.54 externally in schizophrenia models, and comparable failures occur across fields from genomics to molecular property prediction~\cite{whalen2022pitfalls, woerheide2021multiomics, springer2021challenges, ektefaie2024spectra}.
+
+These failures have tangible consequences. A model that performs well during development but fails at deployment may lead to patient misclassification, denial of beneficial treatments, or exposure to inappropriate interventions. Unlike pharmaceuticals, prediction models can be adopted based only on positive cross-validation results.
+
+Generalization failures arise from well-known issues: dataset shift, spurious correlations, confounding, and data leakage~\cite{bendavid2010theory, whalen2022pitfalls}. While proposed solutions exist, there is still no clear, practical method to answer the key question: will this model work for new patients? This portfolio directly addresses this challenge by presenting a three-stage, actionable framework for pre-deployment diagnostics that enables performance estimates without specialized resources.
