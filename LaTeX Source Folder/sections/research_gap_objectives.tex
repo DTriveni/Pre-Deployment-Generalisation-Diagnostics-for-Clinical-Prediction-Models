@@ -2,27 +2,6 @@
 
 Existing literature provides robust methodologies for analyzing generalization failure; however, it lacks predictive tools applicable prior to deployment.
 
-\begin{table}[H]
-\centering
-\caption{What Exists vs.\ What Is Missing}
-\begin{tabular}{p{4cm}p{4cm}}
-\toprule
-\textbf{What exists} & \textbf{What is missing} \\
-\midrule
-Shift theory~\cite{bendavid2010theory, woerheide2021multiomics}
-  & A way to estimate performance drop \emph{before} deployment \\
-Pitfall checklists~\cite{whalen2022pitfalls}
-  & Feature-level guidance on what to trust \\
-Evidence of real-world collapse~\cite{chekroud2024illusory}
-  & Tested solutions, not just diagnoses \\
-Reporting standards~\cite{collins2024tripod}
-  & Standards with meaningful quality thresholds \\
-Causal methods~\cite{pavlovic2024improving, arjovsky2019irm}
-  & Methods that work without specialist expertise \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 The main problem is not a lack of awareness, since the issue is well covered in existing studies. Instead, the problem is the lack of a combined process that includes measuring data differences, analyzing individual features, and providing deployment advice.
 
 \textbf{Research Question:}\\
@@ -31,9 +10,9 @@ How well can we predict before deployment if clinical machine learning models wi
 \textbf{Objectives:}
 
 \begin{enumerate}
-    \item \textbf{Objective 1:} Apply MMD, KL divergence, and Wasserstein distance methods to clinical data from different settings where performance drops are known. Compare each score with the real loss in balanced accuracy.
+    \item \textbf{Objective 1:} Apply MMD \cite{gretton2012kernel}, KL divergence, and Wasserstein distance methods \cite{duchi2018learning, rahimian2019dro} to clinical data from different settings where performance drops are known. Compare each score with the real loss in balanced accuracy.
     
-    \item \textbf{Objective 2:} Use leave-one-context-out permutation importance to mark each predictor as either stable or sensitive to changes. Check these labels against actual performance across different settings, aiming for at least 70\% agreement.
+    \item \textbf{Objective 2:} Use leave-one-context-out permutation importance \cite{whalen2022pitfalls} to mark each predictor as either stable or sensitive to changes. Check these labels against actual performance across different settings, aiming for at least 70\% agreement..
     
     \item \textbf{Objective 3:} Combine Objectives 1 and 2 into a decision flowchart with four options: deploy with normal monitoring, deploy with extra monitoring, retrain using stable features, or do not deploy. Test this on at least one separate setting and clearly report its limitations.
 \end{enumerate}

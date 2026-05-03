@@ -22,14 +22,14 @@ Figure~\ref{fig:pipeline} provides an overview of the complete diagnostic pipeli
 \paragraph{Stage 1 - Divergence Scoring:}
 \textit{How different is the new group from the training group?} Three measures are calculated at the same time: 
 \begin{itemize}
-    \item \textbf{MMD}~\cite{gretton2012kernel}, which compares data without assuming its shape;
-    \item \textbf{KL divergence}~\cite{duchi2018learning} (via W\"{o}rheide et al.~\cite{woerheide2021multiomics}), which finds when the new group has patients not seen in the training data; and
-    \item \textbf{Wasserstein distance}~\cite{rahimian2019dro} (via W\"{o}rheide et al.), which works better than KL when the groups have little overlap.
+    \item \textbf{MMD}~\cite{gretton2012kernel}, which compares data without assuming its shape
+    \item \textbf{KL divergence}~\cite{duchi2018learning} (via W\"{o}rheide et al.~\cite{worheide2021shift}), which finds when the new group has patients not seen in the training data; and
+    \item \textbf{Wasserstein distance}~\cite{worheide2021shift}, which works better than KL when the groups have little overlap.
 \end{itemize}
 W\"{o}rheide et al. list all three as common choices but never check which one best predicts real drops in performance. This project addresses that directly.
 
 \paragraph{Stage 2 - Feature Stability:}
-\textit{Which features can be trusted in different situations?} Using a method that excludes one context at a time, each feature is scored for consistency across groups and labelled shift-stable ($>0.6$), uncertain ($0.3$--$0.6$), or shift-sensitive ($<0.3$). This is similar to what Pavlovic et al.~\cite{pavlovic2024improving} do with causal graphs: they identify features that maintain their link to the outcome across environments without requiring anyone to create a causal diagram, which makes their method hard for most teams to use.
+\textit{Which features can be trusted in different situations?} Using a method that excludes one context at a time, each feature is scored for consistency across groups and labelled shift-stable ($>0.6$), uncertain ($0.3$--$0.6$), or shift-sensitive ($<0.3$). This is similar to what Pavlovic et al.~\cite{pavlovic2024causal} do with causal graphs: they identify features that maintain their link to the outcome across environments without requiring anyone to create a causal diagram, which makes their method hard for most teams to use.
 
 \paragraph{Stage 3 - Decision Framework:}
 \textit{What should the practitioner do?} Divergence score and stability profile combine into four possible recommendations, as shown in Table~\ref{tab:decisions}.
@@ -60,7 +60,7 @@ The framework is compared with three baseline methods, each representing the bes
 
 \textbf{Baseline 1: Naive cross-validation.} This is how most models are currently evaluated: internal cross-validation performance is treated as the expected deployment performance. Chekroud et al.~\cite{chekroud2024illusory} show that this approach fails badly (0.60 on internal data versus 0.54 on independent data). If the proposed framework predicts the actual performance drop more accurately than naive CV does, it adds value.
 
-\textbf{Baseline 2: Importance weighting.} This is the best single correction method tested in the reviewed research, according to W\"{o}rheide et al.~\cite{woerheide2021multiomics}. It works well for simple linear models, but worsens results for flexible models like gradient boosting. The comparison checks whether diagnosing the problem (the new approach) works better than fixing it directly with an existing method.
+\textbf{Baseline 2: Importance weighting.} This is the best single correction method tested in the reviewed research, according to W\"{o}rheide et al.~\cite{worheide2021shift}. It works well for simple linear models, but worsens results for flexible models like gradient boosting. The comparison checks whether diagnosing the problem (the new approach) works better than fixing it directly with an existing method.
 
 \textbf{Baseline 3: Random feature subsets.} Models are retrained using randomly selected features, with the same number as in the stable feature set. This tests whether the stability-based feature selection in Stage~2 really finds better features or if any group of the same size would work just as well.
 

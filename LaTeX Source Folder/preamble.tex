@@ -63,3 +63,13 @@
 
 % ---- Bibliography style (already set in main, but safe to repeat) ----
 \bibliographystyle{IEEEtran}
+
+% Define the custom footer with Git image + link
+\fancypagestyle{gitfooter}{%
+  \fancyhf{}% clear header/footer
+  \renewcommand{\headrulewidth}{0pt}% remove header line
+  \fancyfoot[C]{% center footer
+    \href{https://github.com/UoB-DSMP2026/research-portfolio-lo25538}{Git Repository}%
+    \hfill \thepage% optional: keep page number on the right
+  }%
+}
