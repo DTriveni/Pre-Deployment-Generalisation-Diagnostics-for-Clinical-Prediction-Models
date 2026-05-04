@@ -1,10 +1,77 @@
-\section{Proposed Methodology}
+\section{Project Scope and Methodology}
 
-\subsection{Scope}
+\subsection{Scope Definition}
 
-This project builds a pre-deployment diagnostic tool for clinical prediction models. The tool estimates how much a model's performance is likely to drop when used on a new patient population, and recommends whether to deploy it, adjust it, or hold it back. It is important to be clear about what the project does not do: it does not try to fix generalisation failure. Fixing it properly would need causal modelling or domain adaptation techniques, which the literature review shows are not yet practical for most teams. Instead, this project focuses on spotting the risk of failure before it does any harm, and giving practitioners clear guidance based on what is found. The framework works with tabular clinical data that has identifiable subgroups  different hospitals, regions, trial sites, or time periods  and is designed so that any clinical ML team with standard Python skills can use it without needing specialist statistical training.
-3.2 Methodological Framework and Architecture Overview
-The methodology has three stages that run in order. Each stage answers one question, produces one output, and feeds into the next.
-Stage 1 (Divergence Scoring) asks: how different is the new population from the training population? Three metrics are computed between the training and target data. MMD, from Gretton et al. (2012), compares two distributions without assuming any particular shape  useful for clinical data where features are rarely normally distributed. KL divergence, cited by Wörheide et al. (2021) via Duchi and Namkoong (2018), measures how much information is lost when one distribution stands in for another, and is especially good at catching cases where the target population has patients that the training data simply does not cover. Wasserstein distance, cited by Wörheide et al. via Rahimian and Mehrotra (2019), measures the minimum effort needed to reshape one distribution into the other, and handles situations where the two distributions barely overlap more reliably than KL does. Three metrics are used instead of one because Wörheide et al. list all three as standard options for robust optimisation but never actually test which one is most useful for predicting real performance drops  this project directly fills that gap.
-Stage 2 (Feature Stability Analysis) asks: which features in the model can be trusted across different settings, and which ones are unreliable? The approach is straightforward: train the model on all available subgroups except one, record how important each feature is using permutation importance, then repeat this for every subgroup. Features that stay consistently important regardless of which subgroup is held out are labelled shift-stable. Features whose importance jumps around are labelled shift-sensitive. This does something similar to what Pavlovic et al. (2024) achieve with causal graphs  finding features whose link to the outcome holds across environments  but without needing anyone to draw a causal diagram first. Cross-context consistency is not the same thing as causal stability, but it can be measured by anyone with basic modelling skills, which directly solves the accessibility problem that makes Pavlovic et al.'s method impractical for most teams.
-Stage 3 (Decision Framework) asks: what should the practitioner actually do? It takes the divergence score from Stage 1 and the stability profile from Stage 2, and maps them onto a simple flowchart with four possible outcomes. If divergence is low, deploy the model with routine monitoring. If divergence is high, do not deploy. If divergence is in the middle, look at the feature stability profile: if most key features are stable, deploy with closer monitoring; if stability is mixed, retrain the model using only the stable features; if most features are unstable, restrict the model's use or withdraw it. After deployment, the divergence score is recalculated on incoming data at regular intervals, and if it crosses the upper threshold, the model is flagged for human review. The 0.60 balanced accuracy threshold for acceptable performance comes from Chekroud et al.'s (2024) cross-validation baseline  the best-case internal estimate from their schizophrenia trials.
+This project creates a tool to evaluate clinical prediction models before they are used, estimate how their accuracy might drop when applied to a new group of patients, and suggest whether to use, change, or delay the model. It does not try to fix problems with the model working in new settings; advanced methods like causal modeling and domain adaptation are still too hard for most teams. The main goal is to find risks before any harm happens. The tool works with organized clinical data that includes clear subgroups such as hospitals, regions, trial sites, or time periods, and only requires basic Python skills.
+
+\subsection{Three-Stage Architecture and Technical Pipeline}
+
+Figure~\ref{fig:pipeline} provides an overview of the complete diagnostic pipeline. Each stage answers one question, produces one output, and feeds into the next.
+
+\begin{figure}
+\centering
+\vspace{-\baselineskip}
+\setlength{\textfloatsep}{0pt}
+\setlength{\floatsep}{0pt}
+\vspace{-\baselineskip}% 
+\includegraphics[width=\columnwidth]{LaTeX Source Folder/figures/Full_pipeline.png}
+\caption{Three-stage pre-deployment diagnostic pipeline. Stage~1 computes distributional divergence between training and target data. Stage~2 evaluates feature stability via leave-one-context-out permutation importance. Stage~3 combines both outputs into a deployment recommendation.}
+\label{fig:pipeline}
+\end{figure}
+
+\paragraph{Stage 1 - Divergence Scoring:}
+\textit{How different is the new group from the training group?} Three measures are calculated at the same time: 
+\begin{itemize}
+    \item \textbf{MMD}~\cite{gretton2012kernel}, which compares data without assuming its shape
+    \item \textbf{KL divergence}~\cite{duchi2018learning} (via W\"{o}rheide et al.~\cite{worheide2021shift}), which finds when the new group has patients not seen in the training data; and
+    \item \textbf{Wasserstein distance}~\cite{worheide2021shift}, which works better than KL when the groups have little overlap.
+\end{itemize}
+W\"{o}rheide et al. list all three as common choices but never check which one best predicts real drops in performance. This project addresses that directly.
+
+\paragraph{Stage 2 - Feature Stability:}
+\textit{Which features can be trusted in different situations?} Using a method that excludes one context at a time, each feature is scored for consistency across groups and labelled shift-stable ($>0.6$), uncertain ($0.3$--$0.6$), or shift-sensitive ($<0.3$). This is similar to what Pavlovic et al.~\cite{pavlovic2024causal} do with causal graphs: they identify features that maintain their link to the outcome across environments without requiring anyone to create a causal diagram, which makes their method hard for most teams to use.
+
+\paragraph{Stage 3 - Decision Framework:}
+\textit{What should the practitioner do?} Divergence score and stability profile combine into four possible recommendations, as shown in Table~\ref{tab:decisions}.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Deployment Decision Matrix}
+\label{tab:decisions}
+\begin{tabular}{p{1.6cm} p{2.0cm} p{3.5cm}}
+\toprule
+\textbf{Divergence} & \textbf{Feature Stability} & \textbf{Recommendation} \\
+\midrule
+Low                  & --                        & Deploy, quarterly monitoring \\
+Moderate             & $\geq$70\% stable          & Deploy, monthly monitoring \\
+Moderate             & 50--70\% stable            & Retrain on stable features only \\
+Moderate/ High      & $<$50\% stable             & Restrict or do not deploy \\
+High                 & --                        & Do not deploy \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Post-deployment, divergence is recomputed on incoming data at regular intervals. If it exceeds the upper threshold, the model is flagged for human review; if balanced accuracy falls below 0.60, the cross-validation baseline set by Chekroud et al.~\cite{chekroud2024illusory}, the model is paused.
+
+\subsection{Baselines and Justification}
+
+The framework is compared with three baseline methods, each representing the best current approach from a different area of the literature under review.
+
+\textbf{Baseline 1: Naive cross-validation.} This is how most models are currently evaluated: internal cross-validation performance is treated as the expected deployment performance. Chekroud et al.~\cite{chekroud2024illusory} show that this approach fails badly (0.60 on internal data versus 0.54 on independent data). If the proposed framework predicts the actual performance drop more accurately than naive CV does, it adds value.
+
+\textbf{Baseline 2: Importance weighting.} This is the best single correction method tested in the reviewed research, according to W\"{o}rheide et al.~\cite{worheide2021shift}. It works well for simple linear models, but worsens results for flexible models like gradient boosting. The comparison checks whether diagnosing the problem (the new approach) works better than fixing it directly with an existing method.
+
+\textbf{Baseline 3: Random feature subsets.} Models are retrained using randomly selected features, with the same number as in the stable feature set. This tests whether the stability-based feature selection in Stage~2 really finds better features or if any group of the same size would work just as well.
+
+\subsection{Evaluation Metrics}
+
+The main measure is the Spearman correlation between the predicted performance drop (from Stage~1 divergence scores) and the actual performance drop seen on external data. This directly tests if measuring data differences before deployment can predict how much performance will change, which is the framework's main claim.
+
+Secondary metrics include:
+\begin{itemize}
+    \item Balanced accuracy (matching Chekroud et al.'s primary measure)~\cite{chekroud2024illusory};
+    \item Calibration slope (following Steyerberg et al.~\cite{steyerberg2010assessing} and the TRIPOD+AI calibration requirements from Collins et al.~\cite{collins2024tripod});
+    \item Balanced accuracy broken down by demographic subgroups (following the TRIPOD+AI fairness items);
+    \item Concordance rate between predicted and observed feature instability (target: at least 70\%, as set out in Objective~2).
+\end{itemize}
