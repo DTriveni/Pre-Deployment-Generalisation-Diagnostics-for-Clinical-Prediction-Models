@@ -50,7 +50,7 @@ SEMTM0045_Theme3_Topic3_lo25538/
 │       
 │
 ├── code/
-│   ├── eicu_framework.py
+│   ├── data_loading.ipynb
 │   └── license.txt
 │   
 │
@@ -87,7 +87,7 @@ Due to PhysioNet licence terms, data files are **not included** in this reposito
 1. Visit the link above
 2. Download the demo dataset
 3. Place the CSV files in the `data/` directory
-4. Run `python code/eicu_framework.py`
+4. Run `python code/00_data_loading.ipynb`
 
 ---
 
@@ -116,7 +116,7 @@ Due to PhysioNet licence terms, data files are **not included** in this reposito
 pip install -r code/requirements.txt
 
 # Run the framework (requires eICU demo data in data/ folder)
-python code/eicu_framework.py
+python code/00_data_loading.ipynb
 ```
 
 ---
@@ -130,13 +130,6 @@ bibtex main
 pdflatex main.tex
 pdflatex main.tex
 ```
-
----
-
-## Project Management
-
-- **Actual project board:** [Insert Trello link]
-- **Hypothetical 12-week plan:** [Insert Trello link]
 
 ---
 
