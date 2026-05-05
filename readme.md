@@ -27,8 +27,8 @@ Proof-of-concept tested on the eICU Collaborative Research Database Demo (2,520 
 ---
 
 ## Repository Structure
-
-SEMTM0045_Theme3_Topic3_tdhamdhere/
+```
+SEMTM0045_Theme3_Topic3_lo25538/
 │
 ├── README.md
 ├── SEMTM0045_Theme3_Topic3_tdhamdhere.pdf
@@ -46,13 +46,13 @@ SEMTM0045_Theme3_Topic3_tdhamdhere/
 │   └── figures/
 │       ├── pipeline_overview.png
 │       ├── decision_flowchart.png
-│       ├── eicu_framework_results.png
 │       └── gantt_chart.png
+│       
 │
 ├── code/
 │   ├── eicu_framework.py
-│   ├── methodology.md
-│   └── requirements.txt
+│   └── license.txt
+│   
 │
 ├── planning/
 │   ├── gantt_chart.pdf
@@ -72,7 +72,7 @@ SEMTM0045_Theme3_Topic3_tdhamdhere/
 ├── paper_matrix.xlsx
 ├── research_gap_analysis.pdf
 └── methodology_sketch.pdf
-
+```
 ---
 
 ## Data
@@ -97,7 +97,6 @@ Due to PhysioNet licence terms, data files are **not included** in this reposito
 - **Feature stability analysis** identified ventilation status, motor GCS, hematocrit, temperature, and age as shift-stable predictors; FiO2, respiratory rate, and creatinine as shift-sensitive
 - **Decision framework** correctly flagged the highest-risk deployment scenarios while clearing low-divergence pairs for deployment
 - Cross-region performance (0.686) did not collapse like Chekroud et al.'s psychiatric models, suggesting ICU mortality prediction using standardised physiology variables is more transportable
-
 ---
 
 ## Tools Used
