@@ -24,7 +24,7 @@ Figure~\ref{fig:pipeline} provides an overview of the complete diagnostic pipeli
 \begin{itemize}
     \item \textbf{MMD}~\cite{gretton2012kernel}, which compares data without assuming its shape
     \item \textbf{KL divergence}~\cite{duchi2018learning} (via W\"{o}rheide et al.~\cite{worheide2021shift}), which finds when the new group has patients not seen in the training data; and
-    \item \textbf{Wasserstein distance}~\cite{worheide2021shift}, which works better than KL when the groups have little overlap.
+    \item \textbf{Wasserstein distance}(via Wörheide et al.~\cite{worheide2021shift}), which works better than KL when the groups have little overlap.
 \end{itemize}
 W\"{o}rheide et al. list all three as common choices but never check which one best predicts real drops in performance. This project addresses that directly.
 
