@@ -1,28 +1,68 @@
-# Pre-Deployment Generalisation Diagnostics for Clinical Prediction Models
 
-A framework for predicting and preventing performance collapse when clinical ML models are applied to new patient populations.
+# Pre-Deployment & Post-Deployment Diagnostic Framework for Generalisation Failure in Clinical Prediction Models
 
----
+## Overview
 
-## Student Information
+Clinical machine learning models frequently fail to generalise beyond the populations they were trained on. This project proposes and implements a practical three-stage diagnostic pipeline that enables clinical ML teams to assess generalisation risk **before** a model is deployed — without requiring specialist expertise in causal inference.
 
-- **Name:** Triveni Dhamdhere
-- **Student ID:** lo25538
-- **Module:** SEMTM0045 — Data Science Projects and Methods
-- **Theme:** Theme 3
-- **Topic:** Topic 3 — Construction of Robust Predictive Models for Reliable Generalisation
+The framework addresses a well-documented but underserved problem: while the field has strong tools to explain why models fail *after the fact*, it has few tools to predict these failures *beforehand*. This pipeline fills that gap.
 
 ---
 
-## Research Summary
+## The Problem
 
-Clinical prediction models frequently fail when deployed on patients from different hospitals, demographics, or time periods. This project proposes a three-stage pre-deployment diagnostic framework:
+Models trained on one hospital's data often fail on another hospital's patients. A landmark 2024 study in *Science* (Chekroud et al.) found that schizophrenia treatment models dropped from an AUC of 0.72 in internal testing to 0.54 on independent datasets — approaching coin-flip performance. Similar failures have been reported in genomics, immunology, and biomarker research.
 
-1. **Divergence Scoring** — Measures how different the target population is from training data using MMD, KL divergence, and Wasserstein distance
-2. **Feature Stability Analysis** — Identifies which predictors are reliable across contexts and which are not
-3. **Decision Framework** — Maps scores to actionable recommendations: deploy, adjust, restrict, or withhold
+Root causes include:
+- **Dataset shift** — training and deployment populations differ
+- **Spurious correlations** — models learn associations that don't hold across contexts
+- **Confounding** — hidden variables inflate apparent model performance
+- **Data leakage** — test data contaminates training pipelines
 
-Proof-of-concept tested on the eICU Collaborative Research Database Demo (2,520 ICU patients across 186 US hospitals).
+---
+
+## The Three-Stage Pipeline
+
+### Stage 1 — Divergence Scoring
+*How different is the new patient group from the training group?*
+
+Three distributional distance metrics are computed in parallel:
+
+| Metric | Strength |
+|---|---|
+| Maximum Mean Discrepancy (MMD) | Distribution-free; no shape assumptions |
+| KL Divergence | Sensitive to unseen patient types in the target |
+| Wasserstein Distance | Robust when training and target have little overlap |
+
+Each metric is correlated (Spearman) against observed performance drops across known deployment contexts to identify which metric best predicts real-world failure.
+
+### Stage 2 — Feature Stability
+*Which features can be trusted across different patient groups?*
+
+A leave-one-context-out permutation importance method scores each predictor for consistency across subgroups (hospitals, regions, time periods):
+
+| Stability Label | Consistency Score |
+|---|---|
+| Shift-stable | > 0.6 |
+| Uncertain | 0.3 – 0.6 |
+| Shift-sensitive | < 0.3 |
+
+This replicates the intent of causal graph-based feature selection (Pavlovic et al., 2024) without requiring a manually constructed causal diagram.
+
+### Stage 3 — Deployment Decision Framework
+*What should the practitioner do?*
+
+Divergence score and stability profile feed into a four-outcome decision matrix:
+
+| Divergence | Feature Stability | Recommendation |
+|---|---|---|
+| Low | — | Deploy; quarterly monitoring |
+| Moderate | ≥ 70% stable | Deploy; monthly monitoring |
+| Moderate | 50–70% stable | Retrain on stable features only |
+| Moderate / High | < 50% stable | Restrict or do not deploy |
+| High | — | Do not deploy |
+
+**Post-deployment:** Divergence is recomputed on incoming data at regular intervals. If it crosses the upper threshold, the model is flagged for human review. If balanced accuracy falls below 0.60, the model is paused automatically.
 
 ---
 
@@ -75,76 +115,100 @@ SEMTM0045_Theme3_Topic3_lo25538/
 ```
 ---
 
+---
+
 ## Data
 
-This project uses the **eICU Collaborative Research Database Demo v2.0.1**.
+### Primary Dataset
+**eICU Collaborative Research Database Demo** (Pollard et al., 2018)  
+Hosted on [PhysioNet](https://physionet.org/content/eicu-crd-demo/)
 
-The data is freely available from PhysioNet:
-https://physionet.org/content/eicu-crd-demo/2.0/
+- 2,520 ICU patients across 186 US hospitals
+- Variables: demographics, APACHE physiology scores, lab results, diagnoses, in-hospital mortality
+- Multi-hospital structure provides the cross-context variation the framework requires
 
-Due to PhysioNet licence terms, data files are **not included** in this repository. To reproduce the analysis:
+The demo subset is freely downloadable. The full database (73,718 patients) requires CITI training and a signed Data Use Agreement.
 
-1. Visit the link above
-2. Download the demo dataset
-3. Place the CSV files in the `data/` directory
-4. Run `python code/00_data_loading.ipynb`
+### Data Grouping
+Due to small per-hospital patient counts in the demo subset (10–40 per hospital), hospitals are grouped into four US regions for analysis:
 
----
+| Region | Approx. Patients |
+|---|---|
+| Midwest | ~807 |
+| South | ~500 |
+| West | ~300 |
+| Northeast | ~159 |
 
-## Key Findings
+### Data Notice
 
-- **KL divergence** significantly predicted cross-region performance variation (Spearman r=0.58, p=0.048), outperforming MMD (r=0.43) and Wasserstein distance (r=0.22)
-- **Feature stability analysis** identified ventilation status, motor GCS, hematocrit, temperature, and age as shift-stable predictors; FiO2, respiratory rate, and creatinine as shift-sensitive
-- **Decision framework** correctly flagged the highest-risk deployment scenarios while clearing low-divergence pairs for deployment
-- Cross-region performance (0.686) did not collapse like Chekroud et al.'s psychiatric models, suggesting ICU mortality prediction using standardised physiology variables is more transportable
----
-
-## Tools Used
-
-- **Language:** Python 3.10+
-- **Libraries:** scikit-learn, pandas, numpy, scipy, matplotlib
-- **Document Preparation:** LaTeX (IEEEtran class)
-- **Project Management:** Trello
-- **Version Control:** Git / GitHub
+> All data used in this project is sourced from the **eICU Collaborative Research Database Demo**, made available by PhysioNet under their data use licence. Data is used strictly for **educational and research purposes** as part of the MSc Data Science and AI programme at the University of Bristol. Data must not be redistributed or used for commercial purposes. See the [PhysioNet licence](https://physionet.org/content/eicu-crd-demo/view-license/) for full terms.
 
 ---
 
-## How to Run
+## Baselines
 
-```bash
-# Install dependencies
-pip install -r code/requirements.txt
+The framework is evaluated against three baselines:
 
-# Run the framework (requires eICU demo data in data/ folder)
-python code/00_data_loading.ipynb
-```
-
----
-
-## How to Compile the Paper
-
-```bash
-cd latex_source
-pdflatex main.tex
-bibtex main
-pdflatex main.tex
-pdflatex main.tex
-```
+| Baseline | Description |
+|---|---|
+| Naive cross-validation | Internal CV performance treated as deployment performance — the current default |
+| Importance weighting | Best single correction method from the literature (Wörheide et al.) |
+| Random feature subsets | Models retrained on randomly selected feature subsets of equal size to the stable set |
 
 ---
 
-## References
+## Evaluation Metrics
 
-Full reference list available in `latex_source/references.bib` (36 sources in IEEE format).
+**Primary metric:** Spearman correlation between predicted performance drop (Stage 1 divergence) and observed performance drop on external data.
 
-Key foundation papers:
-- Chekroud et al. (2024) — Illusory generalizability of clinical prediction models. *Science*
-- Whalen et al. (2022) — Navigating the pitfalls of applying ML in genomics. *Nature Reviews Genetics*
-- Pavlovic et al. (2024) — Improving generalization using causal modelling. *Nature Machine Intelligence*
-- Collins et al. (2024) — TRIPOD+AI statement. *BMJ*
-- Wörheide et al. (2021) — Preventing dataset shift from breaking ML biomarkers. *GigaScience*
+**Secondary metrics:**
+- Balanced accuracy (matching Chekroud et al.'s primary measure)
+- Calibration slope (per TRIPOD+AI requirements)
+- Balanced accuracy stratified by demographic subgroup
+- Concordance rate between predicted and observed feature instability (target: ≥ 70%)
 
 ---
+
+## Ethical Considerations
+
+| Risk | Mitigation |
+|---|---|
+| Unfair thresholds (80% Caucasian calibration population) | All results reported stratified by demographic subgroup; calibration population limitations stated explicitly |
+| Re-identification risk in small subgroups | No subgroup statistics computed below n = 10; divergence computed on aggregate distributions only |
+| Automation bias (categorical recommendations mistaken for certainties) | Divergence score and uncertainty range displayed alongside recommendation; human sign-off required before any deployment action |
+| Feature exclusion inequity | Demographic impact checked before dropping shift-sensitive features; targeted recalibration used if removal disproportionately harms specific groups |
+| Governance | PhysioNet data use terms followed in full; DUAA 2025 human-review and auditability requirements apply in any UK clinical deployment |
+
+---
+
+## Tools and Libraries
+
+| Tool | Purpose |
+|---|---|
+| Python 3.x | Core pipeline implementation |
+| pandas, numpy | Data preparation and manipulation |
+| scikit-learn | Permutation importance, model evaluation |
+| scipy | KL divergence, Wasserstein distance |
+| POT (Python Optimal Transport) | MMD and Wasserstein distance computation |
+| YAIB framework | Standardised ICU data handling and baseline modelling |
+
+---
+
+## Key References
+
+- Chekroud et al. (2024). Illusory generalizability of clinical prediction models. *Science*, 383(6679), 164–167.
+- Whalen et al. (2022). Navigating the pitfalls of applying machine learning in genomics. *Nature Reviews Genetics*, 23(3), 169–181.
+- Pavlovic et al. (2024). Improving generalisation of ML-identified biomarkers using causal modelling. *Nature Machine Intelligence*.
+- Gretton et al. (2012). A kernel two-sample test. *JMLR*, 13, 723–773.
+- Collins et al. (2024). TRIPOD+AI statement. *BMJ*, e078378.
+- Ben-David et al. (2010). A theory of learning from different domains. *Machine Learning*, 79(1–2), 151–175.
+- Pollard et al. (2018). The eICU Collaborative Research Database. *Scientific Data*, 5, 180178.
+
+---
+
+## Licence
+
+This repository is submitted as coursework for the University of Bristol MSc Data Science and AI programme and is intended for academic use only. Data from the eICU Collaborative Research Database Demo is used under the PhysioNet licence; redistribution or commercial use is not permitted.
 
 ## Licence
 
